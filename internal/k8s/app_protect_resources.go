@@ -19,9 +19,43 @@ var appProtectLogConfRequieredFields = [][]string{
 	{"spec", "filter"},
 }
 
+var appProtectUserSigRequieredSlices = [][]string{
+	{"spec", "signatures"},
+}
+
+var appProtectUserSigRequieredStrings = [][]string{
+	{"spec", "revisionDatetime"},
+}
+
 func validateRequieredFields(policy *unstructured.Unstructured, fieldsList [][]string) error {
 	for _, fields := range fieldsList {
 		field, found, err := unstructured.NestedMap(policy.Object, fields...)
+		if err != nil {
+			return fmt.Errorf("Error checking for requiered field %v: %v", field, err)
+		}
+		if !found {
+			return fmt.Errorf("Requiered field %v not found", field)
+		}
+	}
+	return nil
+}
+
+func validateRequieredSlices(policy *unstructured.Unstructured, fieldsList [][]string) error {
+	for _, fields := range fieldsList {
+		field, found, err := unstructured.NestedSlice(policy.Object, fields...)
+		if err != nil {
+			return fmt.Errorf("Error checking for requiered field %v: %v", field, err)
+		}
+		if !found {
+			return fmt.Errorf("Requiered field %v not found", field)
+		}
+	}
+	return nil
+}
+
+func validateRequieredStrings(policy *unstructured.Unstructured, fieldsList [][]string) error {
+	for _, fields := range fieldsList {
+		field, found, err := unstructured.NestedString(policy.Object, fields...)
 		if err != nil {
 			return fmt.Errorf("Error checking for requiered field %v: %v", field, err)
 		}
@@ -99,4 +133,22 @@ func ParseResourceReferenceAnnotation(ns, antn string) string {
 		return ns + "/" + antn
 	}
 	return antn
+}
+
+func validateAppProtectUserSig(userSig *unstructured.Unstructured) error {
+	sigName := userSig.GetName()
+	err := validateRequieredSlices(userSig, appProtectUserSigRequieredSlices)
+	if err != nil {
+		return fmt.Errorf("Error validating App Protect User Signature %v: %v", sigName, err)
+	}
+	err = validateRequieredStrings(userSig, appProtectUserSigRequieredStrings)
+	if err != nil {
+		return fmt.Errorf("Error validating App Protect User Signature %v: %v", sigName, err)
+	}
+
+	return nil
+}
+
+func getNsName(obj *unstructured.Unstructured) string {
+	return obj.GetNamespace() + "/" + obj.GetName()
 }
