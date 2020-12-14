@@ -150,5 +150,8 @@ func validateAppProtectUserSig(userSig *unstructured.Unstructured) error {
 }
 
 func getNsName(obj *unstructured.Unstructured) string {
-	return obj.GetNamespace() + "/" + obj.GetName()
+	// It is safe to ignore errors as the metadata map will always be populated
+	ns, _, _ := unstructured.NestedString(obj.Object, "metadata", "namespace")
+	name, _, _ := unstructured.NestedString(obj.Object, "metadata", "name")
+	return ns + "/" + name
 }

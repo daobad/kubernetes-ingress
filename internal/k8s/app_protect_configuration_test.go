@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -17,6 +18,12 @@ func parseTime(value string) *time.Time {
 	return &t
 }
 
+func sliceCmpFunc(x, y unstructured.Unstructured) bool {
+	return x.GetUID() > y.GetUID()
+}
+
+var unstructuredSliceCmpOpts = cmpopts.SortSlices(sliceCmpFunc)
+
 func TestCreateAppProtectPolicyEx(t *testing.T) {
 	tests := []struct {
 		policy           *unstructured.Unstructured
@@ -27,6 +34,9 @@ func TestCreateAppProtectPolicyEx(t *testing.T) {
 		{
 			policy: &unstructured.Unstructured{
 				Object: map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"uid": "1",
+					},
 					"spec": map[string]interface{}{
 						"policy": map[string]interface{}{
 							"name": "TestPolicy",
@@ -664,7 +674,7 @@ func TestAddOrUpdateUserSig(t *testing.T) {
 			"metadata": map[string]interface{}{
 				"namespace":         "testing",
 				"name":              "test1",
-				"uid":               "1234567890",
+				"uid":               "1",
 				"creationTimestamp": "2020-01-23T18:32:02Z",
 			},
 			"spec": map[string]interface{}{
@@ -681,7 +691,7 @@ func TestAddOrUpdateUserSig(t *testing.T) {
 			"metadata": map[string]interface{}{
 				"namespace":         "testing",
 				"name":              "test2",
-				"uid":               "1234567891",
+				"uid":               "2",
 				"creationTimestamp": "2020-01-23T18:32:02Z",
 			},
 			"spec": map[string]interface{}{
@@ -698,7 +708,7 @@ func TestAddOrUpdateUserSig(t *testing.T) {
 			"metadata": map[string]interface{}{
 				"namespace":         "testing",
 				"name":              "test2",
-				"uid":               "1234567891",
+				"uid":               "3",
 				"creationTimestamp": "2020-01-23T18:32:02Z",
 			},
 			"spec": map[string]interface{}{
@@ -712,7 +722,7 @@ func TestAddOrUpdateUserSig(t *testing.T) {
 			"metadata": map[string]interface{}{
 				"namespace":         "testing",
 				"name":              "test2",
-				"uid":               "1234567891",
+				"uid":               "4",
 				"creationTimestamp": "2020-01-25T18:32:02Z",
 			},
 			"spec": map[string]interface{}{
@@ -729,7 +739,7 @@ func TestAddOrUpdateUserSig(t *testing.T) {
 			"metadata": map[string]interface{}{
 				"namespace":         "testing",
 				"name":              "test2",
-				"uid":               "1234567891",
+				"uid":               "5",
 				"creationTimestamp": "2020-01-23T18:32:02Z",
 			},
 			"spec": map[string]interface{}{
@@ -828,11 +838,11 @@ func TestAddOrUpdateUserSig(t *testing.T) {
 
 	for _, test := range tests {
 		apUserSigChan, apProbs := appProtectConfiguration.AddOrUpdateUserSig(test.usersig)
-		if diff := cmp.Diff(test.expectedUserSigChange, apUserSigChan); diff != "" {
-			t.Errorf("AddOrUpdateLogConf() %q changes returned unexpected result (-want +got):\n%s", test.msg, diff)
+		if diff := cmp.Diff(test.expectedUserSigChange, apUserSigChan, unstructuredSliceCmpOpts); diff != "" {
+			t.Errorf("AddOrUpdateUserSig() %q changes returned unexpected result (-want +got):\n%s", test.msg, diff)
 		}
 		if diff := cmp.Diff(test.expectedProblems, apProbs); diff != "" {
-			t.Errorf("AddOrUpdateLogConf() %q problems returned unexpected result (-want +got):\n%s", test.msg, diff)
+			t.Errorf("AddOrUpdateUserSig() %q problems returned unexpected result (-want +got):\n%s", test.msg, diff)
 		}
 	}
 }
@@ -919,7 +929,7 @@ func TestDeleteUserSig(t *testing.T) {
 			"metadata": map[string]interface{}{
 				"namespace":         "testing",
 				"name":              "test1",
-				"uid":               "1234567890",
+				"uid":               "1",
 				"creationTimestamp": "2020-01-23T18:32:02Z",
 			},
 			"spec": map[string]interface{}{
@@ -936,7 +946,7 @@ func TestDeleteUserSig(t *testing.T) {
 			"metadata": map[string]interface{}{
 				"namespace":         "testing",
 				"name":              "test2",
-				"uid":               "1234567891",
+				"uid":               "2",
 				"creationTimestamp": "2020-01-23T18:32:02Z",
 			},
 			"spec": map[string]interface{}{
@@ -1009,7 +1019,7 @@ func TestDeleteUserSig(t *testing.T) {
 
 	for _, test := range tests {
 		apChan, apProbs := appProtectConfiguration.DeleteUserSig(test.key)
-		if diff := cmp.Diff(test.expectedChange, apChan); diff != "" {
+		if diff := cmp.Diff(test.expectedChange, apChan, unstructuredSliceCmpOpts); diff != "" {
 			t.Errorf("DeleteUserSig() %q changes returned unexpected result (-want +got):\n%s", test.msg, diff)
 		}
 		if diff := cmp.Diff(test.expectedProblems, apProbs); diff != "" {
