@@ -18,7 +18,7 @@ func parseTime(value string) *time.Time {
 	return &t
 }
 
-func sliceCmpFunc(x, y unstructured.Unstructured) bool {
+func sliceCmpFunc(x, y *unstructured.Unstructured) bool {
 	return x.GetUID() > y.GetUID()
 }
 
