@@ -75,7 +75,7 @@ func (pol *AppProtectPolicyEx) setValid() {
 	pol.ErrorMsg = ""
 }
 
-// SignatureReq describes a signature that is requiered by the policy
+// SignatureReq describes a signature that is Requiered by the policy
 type SignatureReq struct {
 	Tag      string
 	RevTimes *RevTimes
@@ -147,22 +147,10 @@ func createAppProtectPolicyEx(policyObj *unstructured.Unstructured) (*AppProtect
 		for _, req := range list {
 			requirement := req.(map[string]interface{})
 			if reqTag, ok := requirement["tag"]; ok {
-				timeReq := RevTimes{}
-				if minRev, ok := requirement["minRevisionDatetime"]; ok {
-					minRevTime, err := time.Parse(timeLayout, minRev.(string))
-					if err != nil {
-						errMsg := fmt.Sprintf("Error Parsing time from minRevisionDatetime in %s: %v", policyObj.GetName(), err)
-						return &AppProtectPolicyEx{Obj: policyObj, IsValid: false, ErrorMsg: invalidTimestampErrorMsg}, fmt.Errorf(errMsg)
-					}
-					timeReq.MinRevTime = &minRevTime
-				}
-				if maxRev, ok := requirement["maxRevisionDatetime"]; ok {
-					maxRevTime, err := time.Parse(timeLayout, maxRev.(string))
-					if err != nil {
-						errMsg := fmt.Sprintf("Error Parsing time from maxRevisionDatetime in %s: %v", policyObj.GetName(), err)
-						return &AppProtectPolicyEx{Obj: policyObj, IsValid: false, ErrorMsg: invalidTimestampErrorMsg}, fmt.Errorf(errMsg)
-					}
-					timeReq.MaxRevTime = &maxRevTime
+				timeReq, err := buildRevTimes(requirement)
+				if err != nil {
+					errMsg := fmt.Sprintf("Error creating time requirements from %s: %v", policyObj.GetName(), err)
+					return &AppProtectPolicyEx{Obj: policyObj, IsValid: false, ErrorMsg: invalidTimestampErrorMsg}, fmt.Errorf(errMsg)
 				}
 				sigReqs = append(sigReqs, SignatureReq{Tag: reqTag.(string), RevTimes: &timeReq})
 			}
@@ -173,6 +161,27 @@ func createAppProtectPolicyEx(policyObj *unstructured.Unstructured) (*AppProtect
 		SignatureReqs: sigReqs,
 		IsValid:       true,
 	}, nil
+}
+
+func buildRevTimes(requirement map[string]interface{}) (RevTimes, error) {
+	timeReq := RevTimes{}
+	if minRev, ok := requirement["minRevisionDatetime"]; ok {
+		minRevTime, err := time.Parse(timeLayout, minRev.(string))
+		if err != nil {
+			errMsg := fmt.Sprintf("Error Parsing time from minRevisionDatetime %v", err)
+			return timeReq, fmt.Errorf(errMsg)
+		}
+		timeReq.MinRevTime = &minRevTime
+	}
+	if maxRev, ok := requirement["maxRevisionDatetime"]; ok {
+		maxRevTime, err := time.Parse(timeLayout, maxRev.(string))
+		if err != nil {
+			errMsg := fmt.Sprintf("Error Parsing time from maxRevisionDatetime  %v", err)
+			return timeReq, fmt.Errorf(errMsg)
+		}
+		timeReq.MaxRevTime = &maxRevTime
+	}
+	return timeReq, nil
 }
 
 func createAppProtectLogConfEx(logConfObj *unstructured.Unstructured) (*AppProtectLogConfEx, error) {
@@ -197,7 +206,7 @@ func createAppProtectUserSigEx(userSigObj *unstructured.Unstructured) (*AppProte
 		errMsg := failedValidationErrorMsg
 		return &AppProtectUserSigEx{Obj: userSigObj, IsValid: false, Tag: sTag, ErrorMsg: errMsg}, fmt.Errorf(errMsg)
 	}
-	// Previous validation ensures there will be no erors
+	// Previous validation ensures there will be no errors
 	tag, found, _ := unstructured.NestedString(userSigObj.Object, "spec", "tag")
 	if found {
 		sTag = tag

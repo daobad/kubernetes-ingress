@@ -10,57 +10,57 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-var appProtectPolicyRequieredFields = [][]string{
+var appProtectPolicyRequiredFields = [][]string{
 	{"spec", "policy"},
 }
 
-var appProtectLogConfRequieredFields = [][]string{
+var appProtectLogConfRequiredFields = [][]string{
 	{"spec", "content"},
 	{"spec", "filter"},
 }
 
-var appProtectUserSigRequieredSlices = [][]string{
+var appProtectUserSigRequiredSlices = [][]string{
 	{"spec", "signatures"},
 }
 
-var appProtectUserSigRequieredStrings = [][]string{
+var appProtectUserSigRequiredStrings = [][]string{
 	{"spec", "revisionDatetime"},
 }
 
-func validateRequieredFields(policy *unstructured.Unstructured, fieldsList [][]string) error {
+func validateRequiredFields(policy *unstructured.Unstructured, fieldsList [][]string) error {
 	for _, fields := range fieldsList {
 		field, found, err := unstructured.NestedMap(policy.Object, fields...)
 		if err != nil {
-			return fmt.Errorf("Error checking for requiered field %v: %v", field, err)
+			return fmt.Errorf("Error checking for required field %v: %v", field, err)
 		}
 		if !found {
-			return fmt.Errorf("Requiered field %v not found", field)
+			return fmt.Errorf("Required field %v not found", field)
 		}
 	}
 	return nil
 }
 
-func validateRequieredSlices(policy *unstructured.Unstructured, fieldsList [][]string) error {
+func validateRequiredSlices(policy *unstructured.Unstructured, fieldsList [][]string) error {
 	for _, fields := range fieldsList {
 		field, found, err := unstructured.NestedSlice(policy.Object, fields...)
 		if err != nil {
-			return fmt.Errorf("Error checking for requiered field %v: %v", field, err)
+			return fmt.Errorf("Error checking for required field %v: %v", field, err)
 		}
 		if !found {
-			return fmt.Errorf("Requiered field %v not found", field)
+			return fmt.Errorf("Required field %v not found", field)
 		}
 	}
 	return nil
 }
 
-func validateRequieredStrings(policy *unstructured.Unstructured, fieldsList [][]string) error {
+func validateRequiredStrings(policy *unstructured.Unstructured, fieldsList [][]string) error {
 	for _, fields := range fieldsList {
 		field, found, err := unstructured.NestedString(policy.Object, fields...)
 		if err != nil {
-			return fmt.Errorf("Error checking for requiered field %v: %v", field, err)
+			return fmt.Errorf("Error checking for required field %v: %v", field, err)
 		}
 		if !found {
-			return fmt.Errorf("Requiered field %v not found", field)
+			return fmt.Errorf("Required field %v not found", field)
 		}
 	}
 	return nil
@@ -70,7 +70,7 @@ func validateRequieredStrings(policy *unstructured.Unstructured, fieldsList [][]
 func ValidateAppProtectPolicy(policy *unstructured.Unstructured) error {
 	polName := policy.GetName()
 
-	err := validateRequieredFields(policy, appProtectPolicyRequieredFields)
+	err := validateRequiredFields(policy, appProtectPolicyRequiredFields)
 	if err != nil {
 		return fmt.Errorf("Error validating App Protect Policy %v: %v", polName, err)
 	}
@@ -81,7 +81,7 @@ func ValidateAppProtectPolicy(policy *unstructured.Unstructured) error {
 // ValidateAppProtectLogConf validates LogConfiguration resource
 func ValidateAppProtectLogConf(logConf *unstructured.Unstructured) error {
 	lcName := logConf.GetName()
-	err := validateRequieredFields(logConf, appProtectLogConfRequieredFields)
+	err := validateRequiredFields(logConf, appProtectLogConfRequiredFields)
 	if err != nil {
 		return fmt.Errorf("Error validating App Protect Log Configuration %v: %v", lcName, err)
 	}
@@ -137,11 +137,11 @@ func ParseResourceReferenceAnnotation(ns, antn string) string {
 
 func validateAppProtectUserSig(userSig *unstructured.Unstructured) error {
 	sigName := userSig.GetName()
-	err := validateRequieredSlices(userSig, appProtectUserSigRequieredSlices)
+	err := validateRequiredSlices(userSig, appProtectUserSigRequiredSlices)
 	if err != nil {
 		return fmt.Errorf("Error validating App Protect User Signature %v: %v", sigName, err)
 	}
-	err = validateRequieredStrings(userSig, appProtectUserSigRequieredStrings)
+	err = validateRequiredStrings(userSig, appProtectUserSigRequiredStrings)
 	if err != nil {
 		return fmt.Errorf("Error validating App Protect User Signature %v: %v", sigName, err)
 	}

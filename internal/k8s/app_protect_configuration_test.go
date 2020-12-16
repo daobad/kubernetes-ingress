@@ -349,7 +349,7 @@ func TestIsReqSatisfiedByUserSig(t *testing.T) {
 				},
 			},
 			sigEx:    userSigEx,
-			msg:      "Invalid, rev not in requiered period",
+			msg:      "Invalid, rev not in Required period",
 			expected: false,
 		},
 		{
@@ -548,7 +548,7 @@ func TestAddOrUpdatePolicy(t *testing.T) {
 				{
 					Object:  invalidTestPolicy,
 					Reason:  "Rejected",
-					Message: "Error validating policy : Error validating App Protect Policy : Requiered field map[] not found",
+					Message: "Error validating policy : Error validating App Protect Policy : Required field map[] not found",
 				},
 			},
 			msg: "validation failed",
@@ -651,7 +651,7 @@ func TestAddOrUpdateLogConf(t *testing.T) {
 				{
 					Object:  invalidLogConf,
 					Reason:  "Rejected",
-					Message: "Error validating App Protect Log Configuration testlogconf: Requiered field map[] not found",
+					Message: "Error validating App Protect Log Configuration testlogconf: Required field map[] not found",
 				},
 			},
 			msg: "validation failed",
