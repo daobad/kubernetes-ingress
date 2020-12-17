@@ -271,9 +271,8 @@ func (su *statusUpdater) SaveStatusFromExternalStatus(externalStatusAddress stri
 		}
 
 		// fall back on NginxCisConnector if it exists
-		if len(su.bigIPAddress) > 0 {
-			ips := []string{su.bigIPAddress}
-			su.saveStatus(ips)
+		if su.bigIPAddress != "" {
+			su.saveStatus([]string{su.bigIPAddress})
 			su.externalEndpoints = su.generateExternalEndpointsFromStatus(su.status)
 			return
 		}
