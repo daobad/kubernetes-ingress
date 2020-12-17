@@ -9,4 +9,3 @@ Installation
    installation-with-helm
    installation-with-operator
    running-multiple-ingress-controllers
-   integration-with-cis
